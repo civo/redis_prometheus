@@ -1,8 +1,8 @@
 # RedisPrometheus
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/redis_prometheus`. To experiment with that code, run `bin/console` for an interactive prompt.
+After realising all the current gem solutions for Rails + Prometheus only report stats for the current process (meaning your stats will differ on every scrape), we wrote this gem that uses Redis as a shared data store.
 
-TODO: Delete this and the text above, and describe your gem
+**IMPORTANT:** This gem has no tests yet and is brand new, it was written for our internal needs and has been open-sourced under the MIT licence, but it DEFINITELY comes with zero warranty at all, including that it will either work and won't open your site up to hackers!
 
 ## Installation
 
@@ -14,15 +14,36 @@ gem 'redis_prometheus'
 
 And then execute:
 
-    $ bundle
+```
+$ bundle
+```
 
 Or install it yourself as:
 
-    $ gem install redis_prometheus
+```
+$ gem install redis_prometheus
+```
 
 ## Usage
 
-TODO: Write usage instructions here
+You then need to configure two ENVironment variables (because we play nicely with 12 Factor Apps) outside of your app or in a `.env` file if you use Foreman/etc:
+
+```
+REDIS_PROMETHEUS_SERVICE=...
+REDIS_PROMETHEUS_TOKEN=...
+```
+
+The `REDIS_PROMETHEUS_TOKEN` is just appended to the `/metrics` URL that this gem responds on, so if you set it as 123, you should configure Prometheus to scrape /metrics/123. This is in lieu of authentication, just to make the URL a little harder to guess.
+
+The `REDIS_PROMETHEUS_SERVICE` is just a label for this application, so if you have multiple applications reporting in to the same Prometheus you can separate them.
+
+If you have any paths that you want to ignore stats for, you can set them in `config/application.rb` like this:
+
+```
+config.redis_prometheus.ignored_urls += %w{/status /ping}
+```
+
+After that, configure Prometheus to scrape your URL and it will automatically report a Histogram of response times with URLs, any UUIDs in the URL will be replaced with a token so they share a URL.
 
 ## Development
 
