@@ -29,7 +29,7 @@ module RedisPrometheus
       headers = {}
       response = ""
 
-      keys = Redis.current.keys("http_request_duration_seconds_bucket:*")
+      keys = Redis.current.keys("http_request_duration_seconds_bucket/#{ENV["REDIS_PROMETHEUS_SERVICE"]}:*")
       values = Redis.current.mget(keys)
       response << "# TYPE http_request_duration_seconds_bucket histogram\n"
       response << "# HELP http_request_duration_seconds_bucket The HTTP response duration of the Rack application.\n"
@@ -53,17 +53,17 @@ module RedisPrometheus
 
       response << "# TYPE http_request_requests_counter counter\n"
       response << "# HELP http_request_requests_counter The total number of HTTP requests handled by the Rack application.\n"
-      requests = Redis.current.get("http_request_requests_counter") || 0
+      requests = Redis.current.get("http_request_requests_counter/#{ENV["REDIS_PROMETHEUS_SERVICE"]}") || 0
       response << "http_request_requests_counter{service=\"#{ENV["REDIS_PROMETHEUS_SERVICE"]}\"} #{requests.to_f}\n"
 
       response << "# TYPE http_request_client_errors_counter counter\n"
       response << "# HELP http_request_client_errors_counter The total number of HTTP errors return by the Rack application.\n"
-      requests = Redis.current.get("http_request_client_errors_counter") || 0
+      requests = Redis.current.get("http_request_client_errors_counter/#{ENV["REDIS_PROMETHEUS_SERVICE"]}") || 0
       response << "http_request_client_errors_counter{service=\"#{ENV["REDIS_PROMETHEUS_SERVICE"]}\"} #{requests.to_f}\n"
 
       response << "# TYPE http_request_server_errors_counter counter\n"
       response << "# HELP http_request_server_errors_counter The total number of HTTP errors return by the Rack application.\n"
-      requests = Redis.current.get("http_request_server_errors_counter") || 0
+      requests = Redis.current.get("http_request_server_errors_counter/#{ENV["REDIS_PROMETHEUS_SERVICE"]}") || 0
       response << "http_request_server_errors_counter{service=\"#{ENV["REDIS_PROMETHEUS_SERVICE"]}\"} #{requests.to_f}\n"
 
       headers['Content-Encoding'] = "gzip"
@@ -82,13 +82,13 @@ module RedisPrometheus
       url.gsub!(%r{[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}}i, "{uuid}")
 
       bucket = duration_to_bucket(duration)
-      Redis.current.incr("http_request_duration_seconds_bucket:url=#{url}:le=#{bucket}")
-      Redis.current.incr("http_request_requests_counter")
+      Redis.current.incr("http_request_duration_seconds_bucket/#{ENV["REDIS_PROMETHEUS_SERVICE"]}:url=#{url}:le=#{bucket}")
+      Redis.current.incr("http_request_requests_counter/#{ENV["REDIS_PROMETHEUS_SERVICE"]}")
       if code.to_i >= 400 && code.to_i <= 499
-        Redis.current.incr("http_request_client_errors_counter")
+        Redis.current.incr("http_request_client_errors_counter/#{ENV["REDIS_PROMETHEUS_SERVICE"]}")
       end
       if code.to_i >= 500 && code.to_i <= 599
-        Redis.current.incr("http_request_server_errors_counter")
+        Redis.current.incr("http_request_server_errors_counter/#{ENV["REDIS_PROMETHEUS_SERVICE"]}")
       end
     end
 
