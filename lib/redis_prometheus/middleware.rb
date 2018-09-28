@@ -29,7 +29,7 @@ module RedisPrometheus
       headers = {}
       response = ""
 
-      keys = Redis.current.keys("http_request_duration_seconds_bucket/#{ENV["REDIS_PROMETHEUS_SERVICE"]}:*")
+      keys = Redis.current.keys("http_request_duration_seconds_bucket/#{ENV["REDIS_PROMETHEUS_SERVICE"]}|*")
       values = []
       if keys.size > 0
         values = Redis.current.mget(keys)
