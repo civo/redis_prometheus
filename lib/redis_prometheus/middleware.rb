@@ -51,10 +51,15 @@ module RedisPrometheus
         response << "} #{values[i].to_f}\n"
       end
 
-      response << "# TYPE http_request_requests_counter counter\n"
-      response << "# HELP http_request_requests_counter The total number of HTTP requests handled by the Rack application.\n"
-      requests = Redis.current.get("http_request_requests_counter/#{ENV["REDIS_PROMETHEUS_SERVICE"]}") || 0
-      response << "http_request_requests_counter{service=\"#{ENV["REDIS_PROMETHEUS_SERVICE"]}\"} #{requests.to_f}\n"
+      response << "# TYPE http_request_duration_seconds_count counter\n"
+      response << "# HELP http_request_duration_seconds_count The total number of HTTP requests handled by the Rack application.\n"
+      requests = Redis.current.get("http_request_duration_seconds_count/#{ENV["REDIS_PROMETHEUS_SERVICE"]}") || 0
+      response << "http_request_duration_seconds_count{service=\"#{ENV["REDIS_PROMETHEUS_SERVICE"]}\"} #{requests.to_f}\n"
+
+      response << "# TYPE http_request_duration_seconds_sum counter\n"
+      response << "# HELP http_request_duration_seconds_sum The total number of seconds spent processing HTTP requests by the Rack application.\n"
+      requests = Redis.current.get("http_request_duration_seconds_sum/#{ENV["REDIS_PROMETHEUS_SERVICE"]}") || 0
+      response << "http_request_duration_seconds_sum{service=\"#{ENV["REDIS_PROMETHEUS_SERVICE"]}\"} #{requests.to_f}\n"
 
       response << "# TYPE http_request_client_errors_counter counter\n"
       response << "# HELP http_request_client_errors_counter The total number of HTTP errors return by the Rack application.\n"
@@ -83,8 +88,8 @@ module RedisPrometheus
 
       bucket = duration_to_bucket(duration)
       Redis.current.incr("http_request_duration_seconds_bucket/#{ENV["REDIS_PROMETHEUS_SERVICE"]}:url=#{url}:le=#{bucket}")
-      Redis.current.incr("http_request_requests_counter/#{ENV["REDIS_PROMETHEUS_SERVICE"]}")
-      Redis.current.incrbyfloat("http_request_requests_seconds_sum/#{ENV["REDIS_PROMETHEUS_SERVICE"]}", duration)
+      Redis.current.incr("http_request_duration_seconds_count/#{ENV["REDIS_PROMETHEUS_SERVICE"]}")
+      Redis.current.incrbyfloat("http_request_duration_seconds_sum/#{ENV["REDIS_PROMETHEUS_SERVICE"]}", duration)
       if code.to_i >= 400 && code.to_i <= 499
         Redis.current.incr("http_request_client_errors_counter/#{ENV["REDIS_PROMETHEUS_SERVICE"]}")
       end
