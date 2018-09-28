@@ -84,6 +84,7 @@ module RedisPrometheus
       bucket = duration_to_bucket(duration)
       Redis.current.incr("http_request_duration_seconds_bucket/#{ENV["REDIS_PROMETHEUS_SERVICE"]}:url=#{url}:le=#{bucket}")
       Redis.current.incr("http_request_requests_counter/#{ENV["REDIS_PROMETHEUS_SERVICE"]}")
+      Redis.current.incrbyfloat("http_request_requests_seconds_sum/#{ENV["REDIS_PROMETHEUS_SERVICE"]}", duration)
       if code.to_i >= 400 && code.to_i <= 499
         Redis.current.incr("http_request_client_errors_counter/#{ENV["REDIS_PROMETHEUS_SERVICE"]}")
       end
