@@ -34,7 +34,7 @@ module RedisPrometheus
       response << "# TYPE http_request_duration_seconds_bucket histogram\n"
       response << "# HELP http_request_duration_seconds_bucket The HTTP response duration of the Rack application.\n"
       keys.each_with_index do |key, i|
-        key_parts = key.split(":")
+        key_parts = key.split("|")
         key_parts.shift
 
         data = {}
@@ -85,9 +85,11 @@ module RedisPrometheus
       return if Rails.application.config.redis_prometheus.ignored_urls.include?(url)
 
       url.gsub!(%r{[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}}i, "{uuid}")
+      url.gsub!(%r{/\b\d+\b}i, "{id}")
+      url.gsub!(":id", "{id}")
 
       bucket = duration_to_bucket(duration)
-      Redis.current.incr("http_request_duration_seconds_bucket/#{ENV["REDIS_PROMETHEUS_SERVICE"]}:url=#{url}:le=#{bucket}")
+      Redis.current.incr("http_request_duration_seconds_bucket/#{ENV["REDIS_PROMETHEUS_SERVICE"]}|url=#{url}|le=#{bucket}")
       Redis.current.incr("http_request_duration_seconds_count/#{ENV["REDIS_PROMETHEUS_SERVICE"]}")
       Redis.current.incrbyfloat("http_request_duration_seconds_sum/#{ENV["REDIS_PROMETHEUS_SERVICE"]}", duration)
       if code.to_i >= 400 && code.to_i <= 499
