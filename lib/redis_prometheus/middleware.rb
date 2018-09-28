@@ -30,7 +30,10 @@ module RedisPrometheus
       response = ""
 
       keys = Redis.current.keys("http_request_duration_seconds_bucket/#{ENV["REDIS_PROMETHEUS_SERVICE"]}:*")
-      values = Redis.current.mget(keys)
+      values = []
+      if keys.size > 0
+        values = Redis.current.mget(keys)
+      end
       response << "# TYPE http_request_duration_seconds_bucket histogram\n"
       response << "# HELP http_request_duration_seconds_bucket The HTTP response duration of the Rack application.\n"
       keys.each_with_index do |key, i|
