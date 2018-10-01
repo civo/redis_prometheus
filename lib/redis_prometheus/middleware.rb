@@ -74,6 +74,18 @@ module RedisPrometheus
       requests = Redis.current.get("http_request_server_errors_counter/#{ENV["REDIS_PROMETHEUS_SERVICE"]}") || 0
       response << "http_request_server_errors_counter{service=\"#{ENV["REDIS_PROMETHEUS_SERVICE"]}\"} #{requests.to_f}\n"
 
+      if defined?(Resque)
+        stats = Resque.info
+
+        response << "# TYPE http_request_queue_length gauge\n"
+        response << "# HELP http_request_queue_length The length of Resque's pending queues.\n"
+        response << "http_request_queue_length{service=\"#{ENV["REDIS_PROMETHEUS_SERVICE"]}\"} #{stats[:pending]}\n"
+
+        response << "# TYPE http_request_queue_failed gauge\n"
+        response << "# HELP http_request_queue_failed The length of Resque's failed queue.\n"
+        response << "http_request_queue_failed{service=\"#{ENV["REDIS_PROMETHEUS_SERVICE"]}\"} #{stats[:failed]}\n"
+      end
+
       headers['Content-Encoding'] = "gzip"
       headers['Content-Type'] = "text/plain"
       gzip = Zlib::GzipWriter.new(StringIO.new)
