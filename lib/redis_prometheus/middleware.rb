@@ -47,7 +47,7 @@ module RedisPrometheus
         end
         data[:service] = ENV["REDIS_PROMETHEUS_SERVICE"]
 
-        next if Rails.application.config.redis_prometheus.ignored_urls.include?(data[:url])
+        next if defined?(Rails) && Rails.application.config.redis_prometheus.ignored_urls.include?(data[:url])
 
         response << "http_request_duration_seconds_bucket{"
         response << data.map {|k,v| "#{k}=\"#{v}\""}.join(",")
@@ -97,7 +97,7 @@ module RedisPrometheus
 
     def record(env, code, duration)
       url = "#{env["SCRIPT_NAME"]}#{env["PATH_INFO"]}"
-      return if Rails.application.config.redis_prometheus.ignored_urls.include?(url)
+      return if defined?(Rails) && Rails.application.config.redis_prometheus.ignored_urls.include?(url)
 
       url.gsub!(%r{[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}}i, "{uuid}")
       url.gsub!(%r{/\b\d+\b}i, "{id}")
