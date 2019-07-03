@@ -4,6 +4,8 @@ After realising all the current gem solutions for Rails + Prometheus only report
 
 **IMPORTANT:** This gem has no tests yet and is brand new, it was written for our internal needs and has been open-sourced under the MIT licence, but it DEFINITELY comes with zero warranty at all, including that it will either work and won't open your site up to hackers!
 
+**STATUS:** This project is currently under active development and maintainance.
+
 ## Installation
 
 Add this line to your application's Gemfile:
