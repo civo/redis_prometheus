@@ -54,6 +54,8 @@ module RedisPrometheus
         response << "} #{values[i].to_f}\n"
       end
 
+      response << RedisPrometheus::Collector.current.stats
+
       response << "# TYPE http_request_duration_seconds_count counter\n"
       response << "# HELP http_request_duration_seconds_count The total number of HTTP requests handled by the Rack application.\n"
       requests = Redis.current.get("http_request_duration_seconds_count/#{ENV["REDIS_PROMETHEUS_SERVICE"]}") || 0
@@ -86,7 +88,7 @@ module RedisPrometheus
         response << "http_request_queue_failed{service=\"#{ENV["REDIS_PROMETHEUS_SERVICE"]}\"} #{stats[:failed]}\n"
       end
 
-      
+
 
       headers['Content-Encoding'] = "gzip"
       headers['Content-Type'] = "text/plain"
