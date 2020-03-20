@@ -86,6 +86,8 @@ module RedisPrometheus
         response << "http_request_queue_failed{service=\"#{ENV["REDIS_PROMETHEUS_SERVICE"]}\"} #{stats[:failed]}\n"
       end
 
+      
+
       headers['Content-Encoding'] = "gzip"
       headers['Content-Type'] = "text/plain"
       gzip = Zlib::GzipWriter.new(StringIO.new)
